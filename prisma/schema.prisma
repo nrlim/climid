@@ -1,0 +1,64 @@
+// C-LIMID | Prisma Schema
+// Migrated from schema.sql → Prisma ORM with full type safety
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Account Inventory ─────────────────────────────────────────────────────────
+// Tracks all managed accounts, their encrypted credentials, and status.
+model Account {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  label         String?        // Friendly display name
+  status        AccountStatus  @default(PENDING)
+  
+  // Encrypted Credentials (Stored as JSON serialized blobs containing {hash, iv, tag})
+  password          String?
+  sessionJson       String?        @db.Text @map("session_json")
+
+  lastAuditAt       DateTime?      @map("last_audit_at")
+  promoLink     String?        @map("promo_link")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  // Audit log
+  auditLogs     AuditLog[]
+
+  @@map("accounts")
+}
+
+// Account audit/eligibility status
+enum AccountStatus {
+  PENDING     // Newly added, not yet audited
+  CHECKING    // Audit job is currently running
+  ELIGIBLE    // Promo/upgrade found
+  NOT_ELIGIBLE // Audit complete, no promo
+  ERROR       // Last audit failed
+  ACTION_REQUIRED // 2FA/CAPTCHA challenge detected
+}
+
+// ── Audit Log ────────────────────────────────────────────────────────────────
+// Immutable record of every Playwright audit run for an account.
+model AuditLog {
+  id           String        @id @default(cuid())
+  accountId    String        @map("account_id")
+  accountEmail String        @map("account_email")
+  status       AccountStatus
+  promoLink    String?       @map("promo_link")
+  error        String?
+  durationMs   Int?          @map("duration_ms")
+  jobId        String?       @map("job_id")        // BullMQ job ID
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

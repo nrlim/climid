@@ -1,45 +1,38 @@
 {
-  "name": "climid",
-  "version": "1.0.0",
-  "description": "C-LIMID — Zero-Knowledge Secure Data Vault + Scalable Task Distribution System",
-  "main": "src/services/VaultService.js",
-  "license": "ISC",
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "generate-key": "node scripts/generate-key.js",
-    "test:crypto": "node src/tests/encryption.test.js",
-    "start:producer": "node src/producer.js",
-    "start:worker": "node src/worker.js",
-    "start:all": "node scripts/start-all.js",
-    "start:dispatch": "node scripts/dispatch-jobs.js",
-    "audit:mobile": "node src/tests/mobile-audit.js",
-    "audit:headed": "node src/tests/mobile-audit.js --headed",
-    "test:mobile": "npx playwright test",
-    "test:mobile:ui": "npx playwright test --ui",
-    "report:mobile": "npx playwright show-report qa/playwright-report"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "worker": "tsx src/workers/validation.worker.ts"
   },
-  "keywords": [
-    "encryption",
-    "aes-256-gcm",
-    "zero-knowledge",
-    "vault",
-    "postgresql",
-    "bullmq",
-    "redis",
-    "queue"
-  ],
-  "author": "C-LIMID Engineering",
   "dependencies": {
-    "bullmq": "^5.7.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "ioredis": "^5.3.2",
-    "pg": "^8.11.5",
-    "telegraf": "^4.16.3",
-    "uuid": "^9.0.1"
+    "@prisma/client": "^6.19.2",
+    "bullmq": "^5.71.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "ioredis": "^5.10.1",
+    "lucide-react": "^1.7.0",
+    "next": "16.2.1",
+    "playwright": "^1.58.2",
+    "prisma": "^6.19.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "playwright": "^1.58.2"
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
   }
 }
