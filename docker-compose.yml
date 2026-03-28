@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  # ── BullMQ Backing Store ─────────────────────────────────
+  redis:
+    image: redis:alpine
+    container_name: climid_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # ── Encrypted Storage ────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: climid_db
+    environment:
+      POSTGRES_USER: climid
+      POSTGRES_PASSWORD: climid_password
+      POSTGRES_DB: climid_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U climid"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── C-LIMID Worker & Telegram Bot ────────────────────────
+  worker:
+    build: .
+    container_name: climid_worker
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://climid:climid_password@postgres:5432/climid_db
+      NODE_ENV: production
+    command: npm run start:worker
+    # Needed for Playwright browser sandbox in some hosts
+    security_opt:
+      - seccomp=unconfined
+    shm_size: '2gb' # Fixes Chrome crashing due to small /dev/shm
+
+  # ── C-LIMID API Producer (Optional) ──────────────────────
+  api:
+    build: .
+    container_name: climid_api
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://climid:climid_password@postgres:5432/climid_db
+      NODE_ENV: production
+      API_PORT: 3000
+    ports:
+      - "3000:3000"
+    command: npm run start:producer
+
+volumes:
+  redis_data:
+  pg_data:

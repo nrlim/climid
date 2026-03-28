@@ -1,0 +1,35 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node modules
+node_modules/
+
+# Environment Variables & Secrets
+# CRITICAL: Never commit the vault master key or database credentials!
+.env
+.env.production
+.env.local
+
+# Build & Testing Output
+qa/
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
+# OS/Editor Files
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Docker
+docker-compose.override.yml
